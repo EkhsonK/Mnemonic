@@ -1,0 +1,272 @@
+import pygame
+import time
+import sys
+
+WIDTH, HEIGHT = 1920, 1080
+FPS = 60
+
+# Задаем цвета
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+GOLD = (254 , 186 , 15)
+
+# Спрайт
+class Player(pygame.sprite.Sprite):
+    def __init__(self, img, i):
+        pygame.sprite.Sprite.__init__(self)
+        self.old_image = img
+        self.image = pygame.transform.smoothscale(img, (image_size))
+        self.visible = True
+        self.rect = self.image.get_rect()
+        self.x, self.y = coords[i]
+        self.hitbox = (self.x, self.y, self.rect[-2], self.rect[-1])
+    
+    def update(self):
+        self.rect.x = self.x
+        self.rect.y = self.y
+        self.hitbox = (self.x, self.y, self.rect[-2], self.rect[-1])
+        # pygame.draw.rect(screen, (254, 254, 254), self.hitbox, 2)
+    
+    def indicate(self, pos):
+        x, y = pos
+        if self.x < x < self.x + self.rect[-2] and self.y < y < self.y + self.rect[-1]:
+            return True
+        else:
+            return False
+        
+    def draw(self, screen):
+        if self.visible:
+            screen.blit(self.image, self.rect)
+
+        
+def animate_enlarge(player, scale_factor):
+        player.image = pygame.transform.scale(player.old_image, (int(player.rect[-2] * scale_factor), int(player.rect[-1] * scale_factor)))
+        screen.blit(background_image, (0, 0))
+        all_sprites.update()
+        all_sprites.draw(screen)
+        pygame.display.flip()
+        time.sleep(0.1)
+
+
+def animate_reduce(player, scale_factor):
+        player.image = pygame.transform.scale(player.old_image, (int(player.rect[-2] / scale_factor), int(player.rect[-1] / scale_factor)))
+        screen.blit(background_image, (0, 0))
+        all_sprites.update()
+        all_sprites.draw(screen)
+        pygame.display.flip()
+        time.sleep(0.1)
+
+def combine_images(images):
+    combined_image = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+    x_coord = 0
+    y_coord = 0
+    for image in images:
+        combined_image.blit(image.image, (x_coord, y_coord))
+        x_coord += image.rect.width
+        if x_coord >= WIDTH:
+            x_coord = 0
+            y_coord += image.rect.height
+    return combined_image
+
+
+# Создаем список изображений для выбора
+choices1 = [('Cave_purple', 'Images/Cave_purple.png', (640, 540), (0, 0)),
+            ('Mars_red', 'Images/Mars_red.png', (640, 540), (640, 0)),
+            ('Snow_white', 'Images/Snow_white.png', (640, 540), (1280, 0)),
+            ('Forest_green', 'Images/Forest_green.png', (640, 540), (0, 540)),
+            ('Desert_yellow', 'Images/Desert_yellow.png', (640, 540), (640, 540)),
+            ('DeepSea_blue', 'Images/DeepSea_blue.png', (640, 540), (1280, 540))]
+
+choices2 = [('Alien_purple', 'Images/Alien_purple.png', (640, 540), (0, 0)),
+            ('Mar_red', 'Images/Mar_red.png', (640, 540), (640, 0)),
+            ('Mammut_white', 'Images\Mammut_white.png', (640, 540), (1280, 0)),
+            ('Monkey_green', 'Images\Monkey_green.PNG', (640, 540), (0, 540)),    
+            ('DeserCreature_yellow', 'Images\DeserCreature_yellow.png', (640, 540), (640, 540)),
+            ('OceanStar_blue', 'Images\OceanStar_blue.png', (640, 540), (1280, 540)),]
+
+choices3 = [('House_purple', 'Images\House_purple.png', (640, 540), (0, 0)),
+            ('House_red', 'Images\House_red.png', (640, 540), (640, 0)),
+            ('House_white', 'Images\House_white.png', (640, 540), (1280, 0)),
+            ('House_green', 'Images\House_green.png', (640, 540), (0, 540)),    
+            ('Images\House_yellow.png', 'Images\House_yellow.png', (640, 540), (640, 540)),
+            ('Images\House_blue.png', 'Images\House_blue.png', (640, 540), (1280, 540)),]
+
+# Инициализируем игру и создаем окно
+pygame.init()
+pygame.mixer.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Mnemonic")
+background_image = pygame.image.load('Images/White_white.png')
+background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
+clock = pygame.time.Clock()
+all_sprites = pygame.sprite.Group()
+
+selected_images = []
+
+# Создание меню
+menu_font = pygame.font.Font(None, 50)
+menu_title_font = pygame.font.Font(None, 70)
+menu_items = ["Начать", "Выйти"]
+selected_item = 0
+running = True
+while running:
+    # Держим цикл на правильной скорости
+    clock.tick(FPS)
+    screen.blit(background_image, (0, 0))
+
+    # Ввод процесса (события)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_pos = pygame.mouse.get_pos()
+            if start_game_rect.collidepoint(mouse_pos):
+                running = False  # Exit the menu loop and start the game loop
+
+            elif quit_rect.collidepoint(mouse_pos):
+                pygame.quit()
+                sys.exit()
+
+    # Отображение меню
+    title_text = menu_title_font.render("Мнемотехника", True, BLACK)
+    title_text_rect = title_text.get_rect(center=(WIDTH/2, HEIGHT/3))
+    screen.blit(title_text, title_text_rect)
+
+    for i, item in enumerate(menu_items):
+        if i == selected_item:
+            text = menu_font.render(item, True, GOLD)
+        else:
+            text = menu_font.render(item, True, BLACK)
+        text_rect = text.get_rect(center=(WIDTH/2, HEIGHT/2 + i*100))
+        screen.blit(text, text_rect)
+
+    # Отображение кликабельности пунктов меню
+    x = WIDTH/2 - 100
+    y = HEIGHT/2 - 25
+    start_game_rect = pygame.Rect(x, y, 200, 50)
+    quit_rect = pygame.Rect(x, y + 100, 200, 50)
+    pygame.draw.rect(screen, WHITE, start_game_rect, 1)
+    pygame.draw.rect(screen, WHITE, quit_rect, 1)
+
+    # После отрисовки всего, переворачиваем экран
+    pygame.display.flip()
+
+# Установка изображений для первого выбора
+n = len(choices1)
+img = [0 for i in range(n)]
+image_size = (640, 540)
+coords = [(0, 0), (640, 0), (1280, 0), (0, 540), (640, 540), (1280, 540)]
+
+for i in range(n):
+    img[i] = pygame.image.load(choices1[i][1]).convert_alpha()
+    trans_img = pygame.transform.smoothscale(img[i], choices1[i][2])
+    player = Player(trans_img, i)
+    player.x, player.y = choices1[i][3]
+    all_sprites.add(player)
+
+# Основной цикл игры
+stage = 2
+running = True
+
+while running:
+    # Держим цикл на правильной скорости
+    clock.tick(FPS)
+    screen.blit(background_image, (0, 0))
+    all_sprites.update()
+
+    # Рендеринг
+    all_sprites.draw(screen)
+
+    pygame.display.flip()
+
+    # Ввод процесса (события)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:        
+            if event.key == pygame.K_ESCAPE:
+                running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1 or event.button == 3:
+                x, y = pygame.mouse.get_pos()
+                for player in all_sprites:
+                    if player.indicate((x, y)):
+                        animate_enlarge(player, 1.2)
+                        animate_reduce(player, 1)
+                        all_sprites.update()
+                        selected_images.append(player)
+
+                        # Удаление первого выбора
+                        all_sprites.empty()
+
+                        # Обрабатываем клики мыши
+                        for event in pygame.event.get():
+                            if event.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+
+                # Установка изображений для второго выбора
+                if stage == 2:
+                    n = len(choices2)
+                    img = [0 for i in range(n)]
+                    image_size = (640, 540)
+                    coords = [(0, 0), (640, 0), (1280, 0), (0, 540), (640, 540), (1280, 540)]
+
+                    for i in range(n):
+                        img[i] = pygame.image.load(choices2[i][1]).convert_alpha()
+                        trans_img = pygame.transform.scale(img[i], choices2[i][2])
+                        player = Player(trans_img, i)
+                        player.x, player.y = choices2[i][3]
+                        all_sprites.add(player)
+                    stage = 3
+
+                elif stage == 3:
+                    n = len(choices3)
+                    img = [0 for i in range(n)]
+
+                    for i in range(n):
+                        img[i] = pygame.image.load(choices3[i][1]).convert_alpha()
+                        trans_img = pygame.transform.scale(img[i], choices3[i][2])
+                        player = Player(trans_img, i)
+                        player.x, player.y = choices3[i][3]
+                        all_sprites.add(player)
+
+                    # Создание итоговой картинки после третьего выбора:
+
+                    # Фон
+                    background = pygame.transform.smoothscale(selected_images[0].image, (WIDTH, HEIGHT))
+
+                    # Персонаж
+                    character = pygame.transform.scale(selected_images[1].image, (250, 250))
+                    character_x, character_y = 1010, 800
+
+                    # Дом
+                    if len(selected_images) > 2:  # Проверка, что в списке достаточно элементов
+                        house = pygame.transform.scale(selected_images[2].image, (600, 600))
+                        house_x, house_y = 750, 450
+
+                        final_image = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+                        final_image.blit(background, (0, 0))
+                        final_image.blit(house, (house_x, house_y))
+                        final_image.blit(character, (character_x, character_y))
+
+
+                        running = True
+                        while running:
+                            # Отображение итоговой картинки
+                            screen.blit(final_image, (0, 0))
+                            pygame.display.flip()
+
+                            # Ввод процесса (события)
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                        running = False
+                                elif event.type == pygame.KEYDOWN:
+                                    if event.key == pygame.K_ESCAPE:
+                                        running = False
+
+pygame.quit()
